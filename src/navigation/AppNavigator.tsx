@@ -42,7 +42,11 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen name="MealDecision" component={MealDecisionScreen} options={{ title: "Today's Meal" }} />
         <Stack.Screen name="Location" component={LocationSelectionScreen} options={{ title: 'Delivery Location' }} />
         <Stack.Screen name="Confirmation" component={ConfirmationScreen} options={{ title: 'Confirm Order' }} />
-        <Stack.Screen name="History" component={HistoryScreen} options={{ title: 'Order History' }} />
+        <Stack.Screen
+          name="History"
+          component={HistoryScreen}
+          options={{ title: 'Order History', headerRight: () => null }}
+        />
         <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
       </Stack.Navigator>
     </NavigationContainer>

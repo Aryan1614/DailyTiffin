@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, Alert, TouchableOpacity, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { RootStackParamList } from '../types';
@@ -11,7 +20,6 @@ import { useHistoryStore } from '../store/useHistoryStore';
 import { scheduleDailyReminder } from '../services/notificationService';
 import ActionButton from '../components/ActionButton';
 import ScheduleGrid from '../components/ScheduleGrid';
-import { sendMonthlyReport } from '../services/emailService';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Settings'>;
@@ -20,11 +28,10 @@ type Props = {
 const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const settings = useSettingsStore();
   const { schedule, updateDay } = useScheduleStore();
-  const orders = useHistoryStore((state) => state.orders);
+  const orders = useHistoryStore(state => state.orders);
 
   const [vendorName, setVendorName] = useState(settings.vendorName);
   const [vendorPhone, setVendorPhone] = useState(settings.vendorPhone);
-  const [reportEmail, setReportEmail] = useState(settings.customLocation || '');
 
   const getDateFromTime = (time: string): Date => {
     const [h, m] = time.split(':').map(Number);
@@ -33,7 +40,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     return d;
   };
 
-  const [selectedTime, setSelectedTime] = useState(getDateFromTime(settings.reminderTime));
+  const [selectedTime, setSelectedTime] = useState(
+    getDateFromTime(settings.reminderTime),
+  );
   const [showPicker, setShowPicker] = useState(false);
 
   const formatTimeDisplay = (date: Date): string => {
@@ -45,7 +54,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const get24HourTime = (date: Date): string => {
-    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    return `${date.getHours().toString().padStart(2, '0')}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`;
   };
 
   const onTimeChange = (event: any, date?: Date) => {
@@ -54,19 +66,27 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleSave = async () => {
-    if (!vendorName.trim()) { Alert.alert('Error', 'Please enter vendor name'); return; }
-    if (!vendorPhone.trim() || vendorPhone.length < 10) { Alert.alert('Error', 'Please enter a valid phone number'); return; }
+    if (!vendorName.trim()) {
+      Alert.alert('Error', 'Please enter vendor name');
+      return;
+    }
+    if (!vendorPhone.trim() || vendorPhone.length < 10) {
+      Alert.alert('Error', 'Please enter a valid phone number');
+      return;
+    }
 
     const time24 = get24HourTime(selectedTime);
     settings.setVendorName(vendorName.trim());
     settings.setVendorPhone(vendorPhone.trim());
     settings.setReminderTime(time24);
-    settings.setCustomLocation(reportEmail.trim());
     settings.completeSetup();
 
     try {
       await scheduleDailyReminder(time24);
-      Alert.alert('Saved', `Reminder set for ${formatTimeDisplay(selectedTime)}`);
+      Alert.alert(
+        'Saved',
+        `Reminder set for ${formatTimeDisplay(selectedTime)}`,
+      );
     } catch (error) {
       Alert.alert('Saved', 'Settings saved!');
     }
@@ -74,20 +94,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     if (!settings.isSetupComplete) navigation.replace('Home');
   };
 
-  const handleSendReport = () => {
-    if (!reportEmail.trim()) { Alert.alert('Error', 'Please enter an email address'); return; }
-    sendMonthlyReport(reportEmail.trim(), orders);
-  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {!settings.isSetupComplete && (
-        <View style={styles.welcomeCard}>
-          <Text style={styles.welcomeEmoji}>👋</Text>
-          <Text style={styles.welcomeTitle}>Welcome to Daily Tiffin</Text>
-          <Text style={styles.welcomeText}>Quick setup to get your daily reminders going</Text>
-        </View>
-      )}
 
       {/* Vendor Card */}
       <View style={styles.card}>
@@ -103,7 +112,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           onChangeText={setVendorName}
         />
         <View style={styles.phoneRow}>
-          <View style={styles.prefix}><Text style={styles.prefixText}>+91</Text></View>
+          <View style={styles.prefix}>
+            <Text style={styles.prefixText}>+91</Text>
+          </View>
           <TextInput
             style={[styles.input, { flex: 1 }]}
             placeholder="WhatsApp Number"
@@ -122,7 +133,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.cardIcon}>🔔</Text>
           <Text style={styles.cardTitle}>Daily Reminder</Text>
         </View>
-        <TouchableOpacity style={styles.timeDisplay} onPress={() => setShowPicker(!showPicker)}>
+        <TouchableOpacity
+          style={styles.timeDisplay}
+          onPress={() => setShowPicker(!showPicker)}
+        >
           <Text style={styles.timeText}>{formatTimeDisplay(selectedTime)}</Text>
           <Text style={styles.timeHint}>Tap to change</Text>
         </TouchableOpacity>
@@ -145,33 +159,21 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.cardIcon}>📅</Text>
           <Text style={styles.cardTitle}>Weekly Schedule</Text>
         </View>
-        <Text style={styles.scheduleHint}>Tap to cycle: Veg → Non-Veg → Off</Text>
+        <Text style={styles.scheduleHint}>
+          Tap to cycle: Veg → Non-Veg → Off
+        </Text>
         <ScheduleGrid schedule={schedule} onUpdateDay={updateDay} />
       </View>
 
-      {/* Report Card */}
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardIcon}>📊</Text>
-          <Text style={styles.cardTitle}>Monthly Report</Text>
-        </View>
-        <TextInput
-          style={styles.input}
-          placeholder="Email for monthly report"
-          placeholderTextColor={Colors.textLight}
-          value={reportEmail}
-          onChangeText={setReportEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        <TouchableOpacity style={styles.reportButton} onPress={handleSendReport}>
-          <Text style={styles.reportButtonText}>Send Report</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Save */}
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
-        <Text style={styles.saveButtonText}>{settings.isSetupComplete ? 'Save Changes' : 'Get Started'}</Text>
+      <TouchableOpacity
+        style={styles.saveButton}
+        onPress={handleSave}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.saveButtonText}>
+          {settings.isSetupComplete ? 'Save Changes' : 'Get Started'}
+        </Text>
       </TouchableOpacity>
 
       {/* Reset */}
@@ -181,13 +183,18 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           onPress={() => {
             Alert.alert('Reset Data', 'Clear all settings and history?', [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'Reset', style: 'destructive', onPress: () => {
-                settings.resetSettings();
-                useHistoryStore.getState().clearHistory();
-                navigation.replace('Splash');
-              }},
+              {
+                text: 'Reset',
+                style: 'destructive',
+                onPress: () => {
+                  settings.resetSettings();
+                  useHistoryStore.getState().clearHistory();
+                  navigation.replace('Splash');
+                },
+              },
             ]);
-          }}>
+          }}
+        >
           <Text style={styles.resetButtonText}>Reset All Data</Text>
         </TouchableOpacity>
       )}
@@ -199,36 +206,109 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
   content: { padding: Spacing.md, paddingBottom: 100 },
 
-  welcomeCard: { backgroundColor: Colors.primary, borderRadius: BorderRadius.xl, padding: Spacing.xl, marginBottom: Spacing.lg, alignItems: 'center' },
+  welcomeCard: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    marginBottom: Spacing.lg,
+    alignItems: 'center',
+  },
   welcomeEmoji: { fontSize: 40, marginBottom: Spacing.sm },
-  welcomeTitle: { fontSize: 22, fontWeight: '700', color: Colors.white, marginBottom: 4 },
+  welcomeTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.white,
+    marginBottom: 4,
+  },
   welcomeText: { fontSize: 14, color: Colors.white, opacity: 0.85 },
 
-  card: { backgroundColor: Colors.white, borderRadius: BorderRadius.lg, padding: Spacing.lg, marginBottom: Spacing.md, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.md },
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
   cardIcon: { fontSize: 20, marginRight: Spacing.sm },
   cardTitle: { fontSize: 16, fontWeight: '600', color: Colors.text },
 
-  input: { backgroundColor: '#F8F8FA', borderRadius: BorderRadius.md, padding: 14, fontSize: 16, color: Colors.text, marginBottom: Spacing.sm },
+  input: {
+    backgroundColor: '#F8F8FA',
+    borderRadius: BorderRadius.md,
+    padding: 14,
+    fontSize: 16,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
   phoneRow: { flexDirection: 'row', alignItems: 'center' },
-  prefix: { backgroundColor: '#F0F0F2', paddingVertical: 14, paddingHorizontal: 14, borderRadius: BorderRadius.md, marginRight: Spacing.sm, marginBottom: Spacing.sm },
+  prefix: {
+    backgroundColor: '#F0F0F2',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: BorderRadius.md,
+    marginRight: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
   prefixText: { fontSize: 16, fontWeight: '600', color: Colors.textSecondary },
 
-  timeDisplay: { backgroundColor: '#F0F7FF', borderRadius: BorderRadius.lg, padding: Spacing.lg, alignItems: 'center', marginBottom: Spacing.sm },
-  timeText: { fontSize: 36, fontWeight: '700', color: Colors.primary },
-  timeHint: { fontSize: 12, color: Colors.textSecondary, marginTop: 4 },
+  timeDisplay: {
+    backgroundColor: '#F0F7FF',
+    borderRadius: BorderRadius.md,
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  timeText: { fontSize: 20, fontWeight: '600', color: Colors.primary },
+  timeHint: { fontSize: 12, color: Colors.textSecondary, marginLeft: Spacing.sm },
   pickerWrapper: { alignItems: 'center', marginTop: Spacing.sm },
   picker: { width: 200 },
 
-  scheduleHint: { fontSize: 12, color: Colors.textSecondary, marginBottom: Spacing.md },
+  scheduleHint: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+  },
 
-  reportButton: { backgroundColor: '#F0F7FF', borderRadius: BorderRadius.md, padding: 12, alignItems: 'center', marginTop: Spacing.xs },
+  reportButton: {
+    backgroundColor: '#F0F7FF',
+    borderRadius: BorderRadius.md,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+  },
   reportButtonText: { fontSize: 14, fontWeight: '600', color: Colors.primary },
 
-  saveButton: { backgroundColor: Colors.primary, borderRadius: BorderRadius.lg, padding: 18, alignItems: 'center', marginTop: Spacing.md, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  saveButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.lg,
+    padding: 18,
+    alignItems: 'center',
+    marginTop: Spacing.md,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
   saveButtonText: { fontSize: 17, fontWeight: '700', color: Colors.white },
 
-  resetButton: { alignItems: 'center', marginTop: Spacing.lg, padding: Spacing.md },
+  resetButton: {
+    alignItems: 'center',
+    marginTop: Spacing.lg,
+    padding: Spacing.md,
+  },
   resetButtonText: { fontSize: 14, color: Colors.error, fontWeight: '500' },
 });
 

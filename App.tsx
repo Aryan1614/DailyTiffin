@@ -17,10 +17,9 @@ const App: React.FC = () => {
     };
     init();
 
-    // Handle notification action presses (foreground)
     const unsubscribe = notifee.onForegroundEvent(({ type, detail }) => {
-      if (type === EventType.ACTION_PRESS) {
-        handleNotificationAction(detail.pressAction?.id);
+      if (type === EventType.ACTION_PRESS && detail.pressAction) {
+        handleNotificationAction(detail.pressAction.id);
       }
     });
 
@@ -30,17 +29,14 @@ const App: React.FC = () => {
   return <AppNavigator />;
 };
 
-// Handle notification button taps
-async function handleNotificationAction(actionId: string | undefined) {
-  if (!actionId) return;
-
+async function handleNotificationAction(actionId: string) {
   const { vendorName, vendorPhone } = useSettingsStore.getState();
   const schedule = useScheduleStore.getState().schedule;
   const addOrder = useHistoryStore.getState().addOrder;
   const todaySchedule = getTodaySchedule(schedule);
   const currentMeal = todaySchedule?.mealType as MealType;
 
-  if (todaySchedule?.mealType === 'off') return;
+  if (!todaySchedule || todaySchedule.mealType === 'off') return;
 
   switch (actionId) {
     case 'pg':

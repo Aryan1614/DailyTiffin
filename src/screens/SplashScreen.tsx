@@ -10,7 +10,7 @@ type Props = {
 };
 
 const SplashScreen: React.FC<Props> = ({ navigation }) => {
-  const isSetupComplete = useSettingsStore((state) => state.isSetupComplete);
+  const isSetupComplete = useSettingsStore(state => state.isSetupComplete);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,9 +33,19 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.primary },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+  },
   emoji: { fontSize: 72, marginBottom: 16 },
-  title: { fontSize: 32, fontWeight: '700', color: Colors.white, marginBottom: 8 },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: Colors.white,
+    marginBottom: 8,
+  },
   subtitle: { fontSize: 16, color: Colors.white, opacity: 0.8 },
 });
 
